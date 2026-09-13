@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { extname } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -20,21 +21,26 @@ import type { AuthenticatedRequest } from '../auth/authenticated-request.interfa
 const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 const ALLOWED_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp'];
 
+@ApiTags('posts')
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
+  @ApiOperation({ summary: '게시글 목록 조회 (페이지네이션)' })
   @Get()
   findAll(@Query() query: PaginationQueryDto): Promise<PaginatedPosts> {
     return this.postsService.findAll(query.page, query.limit);
   }
 
+  @ApiOperation({ summary: '게시글 단건 조회' })
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number): Promise<Post> {
     return this.postsService.findOne(id);
   }
 
   // 로그인(JWT)한 사용자만 글을 작성할 수 있음
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 작성 (로그인 필요)' })
   @UseGuards(AuthGuard('jwt'))
   @HttpPost()
   create(
@@ -52,6 +58,9 @@ export class PostsController {
     return this.postsService.update(id, dto);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '게시글 썸네일 이미지 업로드 (로그인 필요)' })
+  @ApiConsumes('multipart/form-data')
   @UseGuards(AuthGuard('jwt'))
   @HttpPost(':id/thumbnail')
   @UseInterceptors(

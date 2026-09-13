@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { JWT_SECRET } from './jwt.constants.js';
 
 export interface JwtPayload {
   sub: number;
@@ -10,11 +10,12 @@ export interface JwtPayload {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  // configService는 super() 호출 전에도 일반 파라미터로는 접근 가능 (this.configService는 아직 불가)
+  constructor(configService: ConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // "Authorization: Bearer <token>" 헤더에서 토큰 추출
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: JWT_SECRET,
+      secretOrKey: configService.get<string>('JWT_SECRET', 'dev-secret-change-me'),
     });
   }
 
