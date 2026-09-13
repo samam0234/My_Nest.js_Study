@@ -3,7 +3,7 @@ import {
   Post as HttpPost,
 } from '@nestjs/common';
 import { PostsService } from './posts.service.js';
-import type { Post } from './post.interface.js';
+import type { Post } from './post.entity.js';
 import { CreatePostDto } from './dto/create-post.dto.js';
 import { UpdatePostDto } from './dto/update-post.dto.js';
 
@@ -12,17 +12,17 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Get()
-  findAll(): Post[] {
+  findAll(): Promise<Post[]> {
     return this.postsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Post {
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<Post> {
     return this.postsService.findOne(id);
   }
 
   @HttpPost()
-  create(@Body() dto: CreatePostDto): Post {
+  create(@Body() dto: CreatePostDto): Promise<Post> {
     return this.postsService.create(dto);
   }
 
@@ -30,13 +30,13 @@ export class PostsController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdatePostDto,
-  ): Post {
+  ): Promise<Post> {
     return this.postsService.update(id, dto);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id', ParseIntPipe) id: number): void {
-    this.postsService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return this.postsService.remove(id);
   }
 }
