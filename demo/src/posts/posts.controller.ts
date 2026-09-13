@@ -1,16 +1,11 @@
 import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  Param,
-  ParseIntPipe,
-  Patch,
+  Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch,
   Post as HttpPost,
 } from '@nestjs/common';
 import { PostsService } from './posts.service.js';
 import type { Post } from './post.interface.js';
+import { CreatePostDto } from './dto/create-post.dto.js';
+import { UpdatePostDto } from './dto/update-post.dto.js';
 
 @Controller('posts')
 export class PostsController {
@@ -27,16 +22,16 @@ export class PostsController {
   }
 
   @HttpPost()
-  create(@Body() body: { title: string; content: string }): Post {
-    return this.postsService.create(body.title, body.content);
+  create(@Body() dto: CreatePostDto): Post {
+    return this.postsService.create(dto);
   }
 
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { title?: string; content?: string },
+    @Body() dto: UpdatePostDto,
   ): Post {
-    return this.postsService.update(id, body.title, body.content);
+    return this.postsService.update(id, dto);
   }
 
   @Delete(':id')
