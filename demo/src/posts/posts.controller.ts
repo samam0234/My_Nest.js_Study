@@ -1,12 +1,13 @@
 import {
   Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch,
-  Post as HttpPost, Req, UseGuards,
+  Post as HttpPost, UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { PostsService } from './posts.service.js';
 import type { Post } from './post.entity.js';
 import { CreatePostDto } from './dto/create-post.dto.js';
 import { UpdatePostDto } from './dto/update-post.dto.js';
+import { CurrentUser } from '../auth/current-user.decorator.js';
 import type { AuthenticatedRequest } from '../auth/authenticated-request.interface.js';
 
 @Controller('posts')
@@ -26,8 +27,11 @@ export class PostsController {
   // 로그인(JWT)한 사용자만 글을 작성할 수 있음
   @UseGuards(AuthGuard('jwt'))
   @HttpPost()
-  create(@Body() dto: CreatePostDto, @Req() req: AuthenticatedRequest): Promise<Post> {
-    return this.postsService.create(dto, req.user.id);
+  create(
+    @Body() dto: CreatePostDto,
+    @CurrentUser() user: AuthenticatedRequest['user'],
+  ): Promise<Post> {
+    return this.postsService.create(dto, user.id);
   }
 
   @Patch(':id')
