@@ -1,5 +1,5 @@
-import { OmitType, PartialType } from '@nestjs/mapped-types';
+import { PartialType } from '@nestjs/mapped-types';
 import { CreatePostDto } from './create-post.dto.js';
 
-// title/content만 선택적으로 수정 가능하도록 authorId는 제외 (글 작성자는 수정 API로 바꾸지 않음)
-export class UpdatePostDto extends PartialType(OmitType(CreatePostDto, ['authorId'] as const)) {}
+// CreatePostDto에서 authorId가 사라졌으므로 OmitType 없이 바로 PartialType만 사용
+export class UpdatePostDto extends PartialType(CreatePostDto) {}

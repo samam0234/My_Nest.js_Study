@@ -7,6 +7,7 @@ import { PostsModule } from './posts/posts.module.js';
 import { Post } from './posts/post.entity.js';
 import { UsersModule } from './users/users.module.js';
 import { User } from './users/user.entity.js';
+import { AuthModule } from './auth/auth.module.js';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { User } from './users/user.entity.js';
     HelloModule,
     PostsModule,
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

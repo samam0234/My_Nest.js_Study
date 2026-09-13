@@ -32,10 +32,10 @@ export class PostsService {
     return post;
   }
 
-  async create(dto: CreatePostDto): Promise<Post> {
-    const author = await this.usersService.findEntityById(dto.authorId);
+  async create(dto: CreatePostDto, authorId: number): Promise<Post> {
+    const author = await this.usersService.findEntityById(authorId);
     if (!author) {
-      throw new NotFoundException(`User #${dto.authorId} not found`);
+      throw new NotFoundException(`User #${authorId} not found`);
     }
     const post = this.postsRepository.create({
       title: dto.title,
