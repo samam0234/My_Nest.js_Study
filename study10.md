@@ -120,6 +120,17 @@ export class PostsController {
 
 서버 실행 후 `http://localhost:3000/api-docs`에서 Swagger UI로 모든 엔드포인트를 확인하고, 우측 상단 **Authorize** 버튼에 로그인으로 받은 토큰을 넣으면 보호된 라우트도 브라우저에서 바로 테스트할 수 있습니다.
 
+### 브라우저로 직접 확인하기
+
+curl로 `/api-docs`가 200을 반환하는지 확인하는 것만으로는 화면이 실제로 정상 렌더링되는지, "Try it out"이 실제로 동작하는지까지는 알 수 없습니다. Playwright로 실제 Chromium을 띄워 다음을 직접 확인했습니다.
+
+1. `/api-docs` 접속 → `App`/`Hello`/`posts`/`users`/`auth` 태그별로 엔드포인트가 정리되고, 보호된 라우트(`POST /posts` 등)에는 자물쇠 아이콘이, 하단에는 DTO별 `Schemas`가 표시됨을 확인
+2. `POST /users`를 "Try it out"으로 펼쳐 회원가입 요청을 직접 실행 → `201`과 함께 `{"data":{"id":...,"email":...},"timestamp":"..."}` 응답(비밀번호 미노출) 확인
+3. `POST /auth/login`도 같은 방식으로 실행해 JWT 발급 확인
+4. 우측 상단 **Authorize** 버튼에 발급받은 토큰을 입력 → 이후 `POST /posts`를 실행하면 Swagger가 생성한 curl 예시에 `-H 'Authorization: Bearer …'`가 자동으로 포함되고, 응답에 로그인한 사용자가 `author`로 정확히 연결됨을 확인
+
+문서를 눈으로 보는 것과, 그 문서에 적힌 대로 실제 요청이 오가는지 버튼을 눌러 확인하는 것은 다른 검증입니다. 이 저장소의 모든 API는 curl 스모크 테스트에 더해 Swagger UI에서도 동일하게 동작함을 확인했습니다.
+
 ## 4. 테스트 코드
 
 `study1`에서 언급했듯 이 프로젝트(Nest CLI v12 기본 스캐폴드)는 **Vitest**를 테스트 러너로 사용합니다. `describe`/`it`/`expect`는 `vitest.config.ts`의 `globals: true` 설정 덕분에 전역으로 쓸 수 있지만, 이 저장소에서는 명시적으로 `import ... from 'vitest'`로 가져와 어떤 함수가 어디서 왔는지 분명히 밝힙니다.

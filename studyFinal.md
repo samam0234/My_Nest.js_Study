@@ -243,7 +243,18 @@ function decodeJwtPayload(token: string) {
 
 브라우저 콘솔에는 에러가 전혀 없었고, 스크린샷으로 위 흐름이 실제로 동작하는 것을 확인했습니다.
 
-## 7. 정리 — 전체 커리큘럼을 마치며
+## 7. Swagger UI도 실제 브라우저에서 확인
+
+`server/`에도 `demo/`와 동일하게 Swagger(`/api-docs`)를 붙였습니다. 여기서도 curl로 200 응답만 확인하고 넘어가지 않고, Playwright로 실제 화면을 열어 다음을 확인했습니다.
+
+1. `/api-docs` 접속 → `Nest.js 최종 프로젝트 API` 제목과 `users`/`auth`/`posts` 태그, 그리고 `PATCH`/`DELETE`/`POST /:id/thumbnail`에 자물쇠 아이콘이 표시됨을 확인(소유권이 필요한 라우트가 시각적으로도 구분됨)
+2. `POST /users` → `POST /auth/login` → **Authorize**에 토큰 입력 → `POST /posts`까지 Swagger UI 화면에서 순서대로 "Try it out"으로 실행
+3. Swagger가 생성한 curl 예시에 `Authorization: Bearer …` 헤더가 자동 포함되고, 응답 헤더에 `access-control-allow-origin: http://localhost:5173`이 찍혀 CORS 설정도 실제로 적용되고 있음을 확인
+4. 최종 응답 바디에 로그인한 사용자가 `author`로 정확히 연결되고, `password`는 어디에도 노출되지 않음을 확인
+
+`demo/`와 `project/` 양쪽 모두 "문서가 그럴듯하게 보이는가"가 아니라 "문서에 적힌 대로 버튼을 눌렀을 때 실제로 동작하는가"까지 확인했습니다.
+
+## 8. 정리 — 전체 커리큘럼을 마치며
 
 `study0`의 이론부터 시작해 `study1`~`study10`으로 게시판+인증 API를 한 단계씩 완성했고, `studyFinal`에서는 같은 개념을 **다른 도구(Prisma)**와 **다른 구조(feature-module)**로 다시 짜보면서, 그리고 **소유권 기반 인가**라는 새로운 요구사항을 추가하면서, 그리고 **실제 프론트엔드(React)**와 연동하면서 응용력을 확인했습니다.
 
