@@ -1,22 +1,32 @@
 import {
+  BadRequestException,
   Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch,
-  Post as HttpPost, UseGuards,
+  Post as HttpPost, Query, UploadedFile, UseGuards, UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { PostsService } from './posts.service.js';
 import type { Post } from './post.entity.js';
 import { CreatePostDto } from './dto/create-post.dto.js';
 import { UpdatePostDto } from './dto/update-post.dto.js';
+import { PaginationQueryDto } from './dto/pagination-query.dto.js';
+import type { PaginatedPosts } from './dto/paginated-posts.dto.js';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import type { AuthenticatedRequest } from '../auth/authenticated-request.interface.js';
+
+const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+const ALLOWED_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp'];
 
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Get()
-  findAll(): Promise<Post[]> {
-    return this.postsService.findAll();
+  findAll(@Query() query: PaginationQueryDto): Promise<PaginatedPosts> {
+    return this.postsService.findAll(query.page, query.limit);
   }
 
   @Get(':id')
@@ -40,6 +50,37 @@ export class PostsController {
     @Body() dto: UpdatePostDto,
   ): Promise<Post> {
     return this.postsService.update(id, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @HttpPost(':id/thumbnail')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads',
+        // 원본 파일명을 그대로 쓰지 않고 무작위 이름 + 확장자만 남겨 경로 조작(path traversal)을 방지
+        filename: (_req, file, callback) => {
+          const ext = extname(file.originalname).toLowerCase();
+          callback(null, `${randomUUID()}${ext}`);
+        },
+      }),
+      fileFilter: (_req, file, callback) => {
+        const ext = extname(file.originalname).toLowerCase();
+        const isAllowed =
+          ALLOWED_MIME_TYPES.includes(file.mimetype) && ALLOWED_EXTENSIONS.includes(ext);
+        callback(null, isAllowed);
+      },
+      limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+    }),
+  )
+  async uploadThumbnail(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file?: Express.Multer.File,
+  ): Promise<Post> {
+    if (!file) {
+      throw new BadRequestException('png/jpeg/webp 이미지 파일(2MB 이하)만 업로드할 수 있습니다.');
+    }
+    return this.postsService.setThumbnail(id, file.filename);
   }
 
   @Delete(':id')

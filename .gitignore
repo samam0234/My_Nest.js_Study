@@ -16,6 +16,10 @@
 **/*.sqlite3
 **/*.db
 
+# uploaded files (폴더 구조만 유지)
+**/uploads/*
+!**/uploads/.gitkeep
+
 # test / coverage
 **/coverage/
 

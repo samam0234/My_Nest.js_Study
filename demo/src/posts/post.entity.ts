@@ -15,6 +15,9 @@ export class Post {
   @CreateDateColumn()
   createdAt: Date;
 
+  @Column({ type: 'text', nullable: true })
+  thumbnailPath: string | null;
+
   @ManyToOne(() => User, (user) => user.posts, { eager: false })
   author: User;
 }
